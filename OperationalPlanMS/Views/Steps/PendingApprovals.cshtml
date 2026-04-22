@@ -1,0 +1,297 @@
+@model List<OperationalPlanMS.Models.Entities.Step>
+@using OperationalPlanMS.Models
+@{
+    ViewData["Title"] = "الخطوات التنفيذية المعلقة للتأكيد";
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1">
+                <i class="bi bi-clipboard-check me-2"></i>الخطوات التنفيذية المعلقة للتأكيد
+            </h4>
+            <p class="text-muted mb-0">
+                @if (ViewBag.PendingCount > 0)
+                {
+                    <span class="badge bg-warning text-dark">@ViewBag.PendingCount خطوة تنفيذية بانتظار التأكيد</span>
+                }
+                else
+                {
+                    <span>لا توجد خطوات تنفيذية معلقة</span>
+                }
+            </p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-right me-2"></i>رجوع لخطوات التنفيذية
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
+                <h5 class="mt-3">لا توجد خطوات تنفيذية معلقة للتأكيد</h5>
+                <p class="text-muted">جميع الخطوات التنفيذية تمت معالجتها</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var step in Model)
+            {
+                <div class="col-lg-6 mb-4">
+                    <div class="card h-100 border-warning">
+                        <div class="card-header bg-warning bg-opacity-10 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-secondary me-2">خطوة تنفيذية @step.StepNumber</span>
+                                <strong>@step.NameAr</strong>
+                            </div>
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-hourglass-split me-1"></i>بانتظار التأكيد
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <!-- معلومات المشروع -->
+                            <div class="mb-3">
+                                <small class="text-muted d-block">الهدف التشغيلي:</small>
+                                <a asp-controller="Projects" asp-action="Details" asp-route-id="@step.ProjectId" class="fw-bold">
+                                    @step.Project?.NameAr
+                                </a>
+                                @if (step.Project?.Initiative != null)
+                                {
+                                    <small class="text-muted d-block">
+                                        <i class="bi bi-lightning-charge me-1"></i>@step.Project.Initiative.NameAr
+                                    </small>
+                                }
+                            </div>
+
+                            <!-- المسؤول -->
+                            @if (step.AssignedTo != null)
+                            {
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">مسؤول الخطوة التنفيذية:</small>
+                                    <span><i class="bi bi-person me-1"></i>@step.AssignedTo.FullNameAr</span>
+                                </div>
+                            }
+
+                            <!-- تاريخ الإرسال -->
+                            @if (step.SubmittedForApprovalAt.HasValue)
+                            {
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">تاريخ الإرسال:</small>
+                                    <span><i class="bi bi-calendar me-1"></i>@step.SubmittedForApprovalAt.Value.ToString("yyyy/MM/dd hh:mm tt")</span>
+                                </div>
+                            }
+
+                            <!-- الوزن -->
+                            <div class="mb-3">
+                                <small class="text-muted d-block">الوزن:</small>
+                                <span class="badge bg-primary fs-6">@step.Weight%</span>
+                            </div>
+
+                            <!-- تفاصيل الإتمام -->
+                            @if (!string.IsNullOrEmpty(step.CompletionDetails))
+                            {
+                                <div class="mb-3">
+                                    <small class="text-muted d-block">تفاصيل الإتمام:</small>
+                                    <div class="border rounded p-2 bg-light">
+                                        @step.CompletionDetails
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- المرفقات -->
+                            @if (step.Attachments != null && step.Attachments.Any())
+                            {
+                                var subAt = step.SubmittedForApprovalAt;
+                                var newAttachments = subAt.HasValue
+                                    ? step.Attachments.Where(a => a.UploadedAt >= subAt.Value.AddMinutes(-1)).OrderByDescending(a => a.UploadedAt).ToList()
+                                    : step.Attachments.OrderByDescending(a => a.UploadedAt).ToList();
+                                var oldAttachments = subAt.HasValue
+                                    ? step.Attachments.Where(a => a.UploadedAt < subAt.Value.AddMinutes(-1)).OrderByDescending(a => a.UploadedAt).ToList()
+                                    : new List<OperationalPlanMS.Models.Entities.StepAttachment>();
+
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1">المرفقات:</small>
+                                    @foreach (var attachment in newAttachments)
+                                    {
+                                        var isPdf = attachment.ContentType.Contains("pdf");
+                                        <button type="button" class="btn btn-sm btn-primary me-1 mb-1"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#attachModal_@(step.Id)_@(attachment.Id)">
+                                            <i class="bi @(isPdf ? "bi-file-pdf" : "bi-file-image") me-1"></i>
+                                            @attachment.OriginalFileName
+                                            <span class="badge bg-light text-primary ms-1" style="font-size:.6rem;">جديد</span>
+                                        </button>
+                                    }
+                                    @if (oldAttachments.Any())
+                                    {
+                                        <div class="mt-1">
+                                            <button class="btn btn-sm btn-outline-secondary" type="button"
+                                                    data-bs-toggle="collapse" data-bs-target="#oldAttach_@step.Id">
+                                                <i class="bi bi-clock-history me-1"></i>سابقة (@oldAttachments.Count)
+                                            </button>
+                                            <div class="collapse mt-1" id="oldAttach_@step.Id">
+                                                @foreach (var attachment in oldAttachments)
+                                                {
+                                                    var isPdf = attachment.ContentType.Contains("pdf");
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary me-1 mb-1" style="opacity:.7;"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#attachModal_@(step.Id)_@(attachment.Id)">
+                                                        <i class="bi @(isPdf ? "bi-file-pdf text-danger" : "bi-file-image text-success") me-1"></i>
+                                                        @attachment.OriginalFileName
+                                                    </button>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex gap-2">
+                                <!-- زر التأكيد -->
+                                <button type="button" class="btn btn-success flex-fill"
+                                        data-bs-toggle="modal" data-bs-target="#approveModal_@step.Id">
+                                    <i class="bi bi-check-lg me-1"></i>تأكيد
+                                </button>
+
+                                <!-- زر الرفض -->
+                                <button type="button" class="btn btn-danger flex-fill" data-bs-toggle="modal" data-bs-target="#rejectModal_@step.Id">
+                                    <i class="bi bi-x-lg me-1"></i>رفض
+                                </button>
+
+                                <!-- زر التفاصيل -->
+                                <a asp-action="Details" asp-route-id="@step.Id" class="btn btn-outline-secondary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal الرفض -->
+                <div class="modal fade" id="rejectModal_@step.Id" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <form asp-action="RejectStep" asp-route-id="@step.Id" method="post">
+                                @Html.AntiForgeryToken()
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title">
+                                        <i class="bi bi-x-circle me-2"></i>رفض الخطوة التنفيذية
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="mb-3">
+                                        <strong>الخطوة التنفيذية:</strong> @step.NameAr
+                                    </p>
+                                    <div class="mb-3">
+                                        <label class="form-label">سبب الرفض <span class="text-danger">*</span></label>
+                                        <textarea name="rejectionReason" class="form-control" rows="4" required
+                                                  placeholder="اكتب سبب رفض الخطوة التنفيذية بالتفصيل..."></textarea>
+                                        <small class="text-muted">سيتم إرسال هذا السبب لمسؤول الخطوة التنفيذية</small>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="bi bi-x-lg me-1"></i>تأكيد الرفض
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modals للمرفقات -->
+                @if (step.Attachments != null)
+                {
+
+                    <!-- Modal التأكيد -->
+                    <div class="modal fade" id="approveModal_@step.Id" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form asp-action="ApproveStep" asp-route-id="@step.Id" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <div class="modal-header bg-success text-white">
+                                        <h5 class="modal-title">
+                                            <i class="bi bi-check-circle me-2"></i>تأكيد الخطوة التنفيذية
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p class="mb-3">
+                                            <strong>الخطوة التنفيذية:</strong> @step.NameAr
+                                        </p>
+                                        @if (!string.IsNullOrEmpty(step.CompletionDetails))
+                                        {
+                                            <div class="alert alert-info mb-3">
+                                                <small class="text-muted d-block mb-1"><i class="bi bi-chat-left-text me-1"></i>ملاحظة المنفذ:</small>
+                                                @step.CompletionDetails
+                                            </div>
+                                        }
+                                        <div class="mb-3">
+                                            <label class="form-label">ملاحظة المؤكد <span class="text-muted">(اختياري)</span></label>
+                                            <textarea name="approverNotes" class="form-control" rows="3"
+                                          placeholder="أضف ملاحظة للمنفذ عند التأكيد..."></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="bi bi-check-lg me-1"></i>تأكيد الخطوة التنفيذية
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    @foreach (var attachment in step.Attachments)
+                    {
+                        var isPdf = attachment.ContentType.Contains("pdf");
+                        <div class="modal fade" id="attachModal_@(step.Id)_@(attachment.Id)" tabindex="-1">
+                            <div class="modal-dialog modal-xl modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">
+                                            <i class="bi @(isPdf ? "bi-file-pdf text-danger" : "bi-file-image text-success") me-2"></i>
+                                            @attachment.FileName
+                                        </h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body text-center p-0" style="min-height: 500px;">
+                                        @if (isPdf)
+                                        {
+                                            <iframe src="@attachment.FilePath" style="width: 100%; height: 600px; border: none;"></iframe>
+                                        }
+                                        else
+                                        {
+                                            <img src="@attachment.FilePath" alt="@attachment.FileName" class="img-fluid" style="max-height: 600px;">
+                                        }
+                                    </div>
+                                    <div class="modal-footer justify-content-between">
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar me-1"></i>@attachment.UploadedAt.ToString("yyyy/MM/dd hh:mm tt")
+                                        </small>
+                                        <div>
+                                            <a href="@attachment.FilePath" download class="btn btn-outline-primary">
+                                                <i class="bi bi-download me-1"></i>تحميل
+                                            </a>
+                                            <a href="@attachment.FilePath" target="_blank" class="btn btn-primary">
+                                                <i class="bi bi-box-arrow-up-right me-1"></i>فتح في نافذة جديدة
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            }
+        </div>
+    }
+</div>

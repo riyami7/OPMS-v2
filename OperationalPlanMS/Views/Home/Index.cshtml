@@ -1,0 +1,512 @@
+@model OperationalPlanMS.Models.ViewModels.DashboardViewModel
+@using OperationalPlanMS.Models
+@using OperationalPlanMS.Models.Entities
+@{
+    ViewData["Title"] = "الصفحة الرئيسية";
+    var userRole = ViewBag.UserRole as UserRole? ?? UserRole.User;
+    var userName = ViewBag.UserName as string ?? "المستخدم";
+    var roleNameAr = ViewBag.RoleNameAr as string ?? "مستخدم";
+    var isAdmin = userRole == UserRole.Admin;
+    var isExecutive = userRole == UserRole.Executive;
+    var isAdminOrExec = isAdmin || isExecutive;
+
+    // بيانات المستخدم
+    var profileImg = User.FindFirst("ProfileImage")?.Value;
+    var unitName = User.FindFirst("UnitName")?.Value;
+    var position = User.FindFirst("EmployeePosition")?.Value;
+    var lastLoginStr = User.FindFirst("LastLoginAt")?.Value;
+    DateTime? lastLogin = null;
+    if (DateTime.TryParse(lastLoginStr, out var dt)) lastLogin = dt;
+
+    // الحروف الأولى من الاسم (لو مافيه صورة)
+    var initials = string.Concat((userName ?? "م")
+        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+        .Take(2)
+        .Select(w => w.FirstOrDefault()));
+
+    var pendingApprovals = ViewBag.PendingApprovals as int? ?? 0;
+}
+
+<!-- Welcome Banner -->
+<div class="welcome-banner mb-4" style="background: linear-gradient(135deg, #2D4A22 0%, #1B3A2A 100%); border-radius: 16px; padding: 24px 28px; color: #fff; position: relative; overflow: hidden;">
+
+    <!-- زخارف الخلفية -->
+    <div style="position: absolute; top: -40px; left: -40px; width: 200px; height: 200px; border-radius: 50%; background: rgba(201, 168, 76, 0.08); pointer-events: none;"></div>
+    <div style="position: absolute; bottom: -60px; right: 20%; width: 150px; height: 150px; border-radius: 50%; background: rgba(255, 255, 255, 0.04); pointer-events: none;"></div>
+
+    <div class="d-flex flex-wrap align-items-center" style="gap: 20px; position: relative;">
+
+        <!-- صورة المستخدم -->
+        <div style="flex-shrink: 0;">
+            @if (!string.IsNullOrEmpty(profileImg))
+            {
+                    <img src="@profileImg" alt="@userName"
+                         style="width: 200px; height: 200px; border-radius: 50%; border: 3px solid #C9A84C; object-fit: cover; background: #fff;" />
+            }
+            else
+            {
+                    <div style="width: 92px; height: 92px; border-radius: 50%; background: rgba(255,255,255,0.95); border: 3px solid #C9A84C; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 500; color: #2D4A22;">
+                    @initials
+                    </div>
+            }
+        </div>
+
+        <!-- البيانات الرئيسية -->
+        <div style="flex: 1; min-width: 220px;">
+            <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                
+                <span style="background: rgba(201, 168, 76, 0.9); color: #1B3A2A; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">
+                    <i class="bi bi-person-badge me-1"></i>@roleNameAr
+                </span>
+            </div>
+            <h2 style="margin: 0 0 10px; font-size: 22px; font-weight: 500; color: #fff;">
+                @ViewBag.EmployeeRank @userName
+            </h2>
+            <div class="d-flex flex-wrap" style="gap: 16px; font-size: 13px; color: rgba(255,255,255,0.85);">
+                @if (!string.IsNullOrEmpty(unitName))
+                {
+                        <span><i class="bi bi-building me-1" style="color:#C9A84C;"></i>@unitName</span>
+                }
+                @if (!string.IsNullOrEmpty(position))
+                {
+                        <span><i class="bi bi-briefcase me-1" style="color:#C9A84C;"></i>@position</span>
+                }
+                @if (lastLogin.HasValue)
+                {
+                        <span><i class="bi bi-clock me-1" style="color:#C9A84C;"></i>آخر دخول: @lastLogin.Value.ToString("yyyy/MM/dd HH:mm")</span>
+                }
+            </div>
+        </div>
+
+        <!-- إحصائيات سريعة -->
+        <div class="d-flex flex-wrap" style="gap: 10px; flex-shrink: 0;">
+
+            @if (Model.TotalInitiatives > 0)
+            {
+                    <a href="/Initiatives" class="text-decoration-none" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 12px 16px; text-align: center; min-width: 90px; transition: all .2s; display: block;"
+                       onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                        <div style="font-size: 22px; font-weight: 500; color: #C9A84C; line-height: 1;">@Model.TotalInitiatives</div>
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.75); margin-top: 4px;">وحدة تنظيمية</div>
+                    </a>
+            }
+
+            @if (Model.TotalProjects > 0)
+            {
+                    <a href="/Projects" class="text-decoration-none" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 12px 16px; text-align: center; min-width: 90px; transition: all .2s; display: block;"
+                       onmouseover="this.style.background='rgba(255,255,255,0.18)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                        <div style="font-size: 22px; font-weight: 500; color: #C9A84C; line-height: 1;">@Model.TotalProjects</div>
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.75); margin-top: 4px;">هدف تشغيلي</div>
+                    </a>
+            }
+
+            @if (pendingApprovals > 0)
+            {
+                    <a href="/Steps/PendingApprovals" class="text-decoration-none" style="background: rgba(201, 168, 76, 0.2); border: 1px solid rgba(201, 168, 76, 0.4); border-radius: 12px; padding: 12px 16px; text-align: center; min-width: 90px; transition: all .2s; display: block; position: relative;"
+                       onmouseover="this.style.background='rgba(201, 168, 76, 0.3)'" onmouseout="this.style.background='rgba(201, 168, 76, 0.2)'">
+                        <div style="font-size: 22px; font-weight: 500; color: #C9A84C; line-height: 1;">@pendingApprovals</div>
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.85); margin-top: 4px;">بانتظار التأكيد</div>
+                    </a>
+            }
+
+        </div>
+
+    </div>
+</div>
+
+@if (ViewBag.DatabaseError != null)
+{
+    <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>@ViewBag.DatabaseError</div>
+}
+
+<!-- Stat Cards -->
+<div class="row mb-4">
+    @if (Model.TotalInitiatives > 0 || isAdminOrExec)
+    {
+        <div class="col-6 col-xl-3 mb-3">
+            <div class="stat-card-new bg-gradient-primary">
+                <div class="stat-value">@Model.TotalInitiatives</div>
+                <div class="stat-label">@(isAdminOrExec ? "إجمالي الواحدات التنظيمية" : "الوحدات التنظيمية")</div>
+                <i class="bi bi-lightning-charge stat-icon"></i>
+            </div>
+        </div>
+    }
+    <div class="col-6 col-xl-3 mb-3">
+        <div class="stat-card-new bg-gradient-success">
+            <div class="stat-value">@Model.TotalProjects</div>
+            <div class="stat-label">@(isAdminOrExec ? "الأهداف التشغيلية" : "أهدافي التشغيلية")</div>
+            <i class="bi bi-folder stat-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3 mb-3">
+        <div class="stat-card-new bg-gradient-info">
+            <div class="stat-value">@Model.TotalSteps</div>
+            <div class="stat-label">@(isAdminOrExec ? "الخطوات التنفيذية" : " خطواتي التنفيذية")</div>
+            <i class="bi bi-list-check stat-icon"></i>
+        </div>
+    </div>
+    @if (isAdmin)
+    {
+        <div class="col-6 col-xl-3 mb-3">
+            <div class="stat-card-new bg-gradient-dark">
+                <div class="stat-value">@Model.TotalUsers</div>
+                <div class="stat-label">المستخدمين</div>
+                <i class="bi bi-people stat-icon"></i>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="col-6 col-xl-3 mb-3">
+            <div class="stat-card-new bg-gradient-warning">
+                <div class="stat-value">@(Model.DelayedProjects + Model.DelayedSteps)</div>
+                <div class="stat-label">عناصر متأخرة</div>
+                <i class="bi bi-exclamation-triangle stat-icon"></i>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Progress + Quick Actions -->
+<div class="row mb-4">
+    <div class="col-md-6 col-lg-8 mb-3">
+        <div class="card dashboard-card h-100">
+            <div class="card-body">
+                <h6 class="text-muted mb-3"><i class="bi bi-bar-chart me-2"></i>تقدم الأهداف التشغيلية</h6>
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="position-relative d-inline-block">
+                            <svg class="progress-ring" viewBox="0 0 36 36" style="width:120px;height:120px;">
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e9ecef" stroke-width="3" />
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#11998e" stroke-width="3" stroke-dasharray="@Model.AverageProjectProgress, 100" />
+                            </svg>
+                            <div class="position-absolute top-50 start-50 translate-middle">
+                                <span class="h4 mb-0">@Model.AverageProjectProgress.ToString("0")%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="row text-center g-3">
+                            <div class="col-4">
+                                <div class="p-2 rounded" style="background:rgba(25,135,84,0.08);">
+                                    <div class="h5 text-success mb-0">@Model.CompletedProjects</div>
+                                    <small class="text-muted">مكتملة</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-2 rounded" style="background:rgba(13,110,253,0.08);">
+                                    <div class="h5 text-primary mb-0">@Model.InProgressProjects</div>
+                                    <small class="text-muted">جارية</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-2 rounded" style="background:rgba(220,53,69,0.08);">
+                                    <div class="h5 text-danger mb-0">@Model.DelayedProjects</div>
+                                    <small class="text-muted">متأخرة</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card dashboard-card h-100">
+            <div class="card-header bg-transparent border-0">
+                <h6 class="mb-0"><i class="bi bi-lightning me-2"></i>إجراءات سريعة</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    @if (isAdmin)
+                    {
+                        // <a href="/Initiatives/Create" class="btn btn-primary quick-action-btn"><i class="bi bi-plus-circle me-2"></i>مبادرة جديدة</a>
+                        <a href="/Reports" class="btn btn-outline-primary quick-action-btn"><i class="bi bi-graph-up me-2"></i>التقارير التنفيذية</a>
+                        <a href="/Admin" class="btn btn-dark quick-action-btn"><i class="bi bi-gear me-2"></i>إعدادات النظام</a>
+                    }
+                    else if (isExecutive)
+                    {
+                        <a href="/Reports" class="btn btn-outline-primary quick-action-btn"><i class="bi bi-graph-up me-2"></i>التقارير التنفيذية</a>
+                        <a href="/Initiatives" class="btn btn-primary quick-action-btn"><i class="bi bi-lightning-charge me-2"></i>الوحدات التنظيمية</a>
+                    }
+                    else
+                    {
+                        <a href="/Projects" class="btn btn-success quick-action-btn"><i class="bi bi-folder me-2"></i>الأهداف التشغيلية</a>
+                        <a href="/Steps" class="btn btn-outline-info quick-action-btn"><i class="bi bi-list-check me-2"></i>الخطوات التنفيذية</a>
+                        @if (Model.TotalInitiatives > 0)
+                        {
+                            <a href="/Initiatives" class="btn btn-outline-primary quick-action-btn"><i class="bi bi-lightning-charge me-2"></i>الوحدة التنظيمية</a>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Overdue + Upcoming Deadlines -->
+@if (!isAdminOrExec && (Model.MyUpcomingDeadlines.Any() || Model.OverdueSteps.Any()))
+{
+    <div class="row mb-4">
+        @if (Model.OverdueSteps.Any())
+        {
+            <div class="@(Model.MyUpcomingDeadlines.Any() ? "col-lg-6" : "col-12") mb-3">
+                <div class="card dashboard-card border-danger">
+                    <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-exclamation-triangle me-2"></i>خطوات تنفيذية متأخرة</span>
+                        <span class="badge bg-white text-danger">@Model.OverdueSteps.Count</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            @foreach (var step in Model.OverdueSteps)
+                            {
+                                var daysLate = step.PlannedEndDate != default ? (DateTime.Today - step.PlannedEndDate).Days : 0;
+                                <a href="/Steps/Details/@step.Id" class="list-group-item list-group-item-action py-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong style="font-size:.88rem;">@step.NameAr</strong>
+                                            <small class="text-muted d-block">@step.Project?.NameAr</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-danger">متأخرة @daysLate يوم</span>
+                                            <small class="text-muted d-block">@((int)step.ProgressPercentage)%</small>
+                                        </div>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (Model.MyUpcomingDeadlines.Any())
+        {
+            <div class="@(Model.OverdueSteps.Any() ? "col-lg-6" : "col-12") mb-3">
+                <div class="card dashboard-card border-warning">
+                    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-calendar-event me-2"></i>مواعيد قادمة (7 أيام)</span>
+                        <span class="badge bg-dark">@Model.MyUpcomingDeadlines.Count</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            @foreach (var step in Model.MyUpcomingDeadlines)
+                            {
+                                var daysLeft = step.PlannedEndDate != default ? (step.PlannedEndDate - DateTime.Today).Days : 0;
+                                <a href="/Steps/Details/@step.Id" class="list-group-item list-group-item-action py-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong style="font-size:.88rem;">@step.NameAr</strong>
+                                            <small class="text-muted d-block">@step.Project?.NameAr</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-warning text-dark">باقي @daysLeft يوم</span>
+                                            <small class="text-muted d-block">@step.PlannedEndDate.ToString("MM/dd")</small>
+                                        </div>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Overdue Projects Alert -->
+@if (Model.OverdueProjects.Any())
+{
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card dashboard-card border-danger">
+                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-exclamation-triangle me-2"></i>أهداف تشغيلية متأخرة تحتاج اهتمامك</span>
+                    <span class="badge bg-white text-danger">@Model.OverdueProjects.Count</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light">
+                                <tr><th>الهدف التشغيلي</th><th>الوحدة التنظيمية</th><th>الإنجاز</th><th>التأخير</th><th></th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.OverdueProjects)
+                                {
+                                    var daysOverdue = item.PlannedEndDate.HasValue ? Math.Max(0, (DateTime.Today - item.PlannedEndDate.Value).Days) : 0;
+                                    <tr>
+                                        <td><strong>@item.NameAr</strong><br><small class="text-muted">@item.Code</small></td>
+                                        <td><small>@item.Initiative?.NameAr</small></td>
+                                        <td>
+                                            <div class="progress" style="width:60px;height:6px;"><div class="progress-bar bg-danger" style="width:@((int)item.ProgressPercentage)%"></div></div>
+                                            <small>@((int)item.ProgressPercentage)%</small>
+                                        </td>
+                                        <td><span class="badge bg-danger">@daysOverdue يوم</span></td>
+                                        <td><a href="/Projects/Details/@item.Id" class="btn btn-sm btn-outline-danger"><i class="bi bi-eye"></i></a></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- My Steps -->
+@if (!isAdminOrExec && Model.MySteps.Any())
+{
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-list-check me-2 text-info"></i>خطواتي التنفيية الجارية</h6>
+                    <a href="/Steps" class="btn btn-sm btn-outline-info">عرض الكل</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr><th>الخطوة التنفيذية</th><th>الهدف التشغيلي</th><th>الوزن</th><th>الإنجاز</th><th>الموعد</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var step in Model.MySteps)
+                                {
+                                    var isDelayed = step.PlannedEndDate < DateTime.Today;
+                                    var progressColor = step.ProgressPercentage >= 100 ? "success" : isDelayed ? "danger" : step.ProgressPercentage >= 50 ? "primary" : step.ProgressPercentage > 0 ? "warning" : "secondary";
+                                    <tr class="@(isDelayed ? "table-danger" : "")">
+                                        <td>
+                                            <a href="/Steps/Details/@step.Id" class="text-decoration-none">
+                                                <div class="fw-semibold">@step.NameAr</div>
+                                                <small class="text-muted">خطوة تنفيذية @step.StepNumber</small>
+                                            </a>
+                                        </td>
+                                        <td><small>@step.Project?.NameAr</small></td>
+                                        <td><span class="badge bg-info">@((int)step.Weight)%</span></td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1 me-2" style="height:6px;width:50px;"><div class="progress-bar bg-@progressColor" style="width:@step.ProgressPercentage%"></div></div>
+                                                <small>@((int)step.ProgressPercentage)%</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (step.PlannedEndDate != default)
+                                            {
+                                                <small class="@(isDelayed ? "text-danger fw-bold" : "text-muted")">@step.PlannedEndDate.ToString("yyyy-MM-dd")</small>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Recent Projects (full width) -->
+@if (Model.RecentProjects.Any())
+{
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-folder me-2 text-success"></i>@(isAdminOrExec ? "آخر الأهداف التشغيلية" : "أهدافي التشغيلية")</h6>
+                    <a href="/Projects" class="btn btn-sm btn-outline-success">عرض الكل</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light"><tr><th>الهدف التشغيلي</th><th>الوحدة التنظيمية</th><th>الحالة</th><th>التقدم</th></tr></thead>
+                            <tbody>
+                                @foreach (var item in Model.RecentProjects)
+                                {
+                                    var isDelayed = item.PlannedEndDate < DateTime.Today && item.Status != Status.Completed;
+                                    var progressColor = item.ProgressPercentage >= 100 ? "success" : isDelayed ? "danger" : item.ProgressPercentage >= 50 ? "primary" : item.ProgressPercentage > 0 ? "warning" : "secondary";
+                                    var statusText = item.Status == Status.Completed ? "مكتمل" : isDelayed ? "متأخر" : item.ProgressPercentage > 0 ? "جاري" : "لم يبدأ";
+                                    var statusBg = item.Status == Status.Completed ? "success" : isDelayed ? "danger" : item.ProgressPercentage > 0 ? "primary" : "secondary";
+                                    <tr>
+                                        <td>
+                                            <a href="/Projects/Details/@item.Id" class="text-decoration-none">
+                                                <div class="fw-semibold">@item.NameAr</div>
+                                                <small class="text-muted">@item.Code</small>
+                                            </a>
+                                        </td>
+                                        <td><small class="text-muted">@item.Initiative?.NameAr</small></td>
+                                        <td><span class="badge bg-@statusBg">@statusText</span></td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1 me-2" style="height:6px;width:80px;"><div class="progress-bar bg-@progressColor" style="width:@((int)item.ProgressPercentage)%"></div></div>
+                                                <small class="fw-bold">@((int)item.ProgressPercentage)%</small>
+                                                @if (isDelayed) { <i class="bi bi-exclamation-triangle text-danger ms-1"></i> }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Recent Notifications -->
+@if (Model.RecentNotifications.Any())
+{
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-bell me-2 text-warning"></i>آخر الإشعارات</h6>
+                    <a href="/Notification" class="btn btn-sm btn-outline-warning">عرض الكل</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @foreach (var n in Model.RecentNotifications)
+                        {
+                            <a href="@(n.Url ?? "/Notification")" class="list-group-item list-group-item-action py-2 @(!n.IsRead ? "bg-light" : "")">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <i class="bi @n.Icon @n.TypeBadgeClass"></i>
+                                        <div>
+                                            <span style="font-size:.88rem;@(!n.IsRead ? "font-weight:700;" : "")">@n.Title</span>
+                                            @if (!string.IsNullOrEmpty(n.Message))
+                                            {
+                                                <small class="text-muted d-block">@n.Message</small>
+                                            }
+                                        </div>
+                                    </div>
+                                    <small class="text-muted text-nowrap">@n.TimeAgo</small>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- No Data -->
+@if (!Model.RecentProjects.Any() && !Model.MySteps.Any())
+{
+    <div class="row">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-inbox text-muted" style="font-size:4rem;"></i>
+                    <h5 class="mt-3 text-muted">لا توجد بيانات معيّنة لك حالياً</h5>
+                    <p class="text-muted">تواصل مع مديرك أو مشرفك لتعيين  أهداف تشغيلية أو خطوات تنفيذية إليك</p>
+                    @if (isAdmin)
+                    {
+                        <a href="/Initiatives/Create" class="btn btn-primary"><i class="bi bi-plus-circle me-2"></i>إنشاء وحدة تنظيمية جديدة</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}

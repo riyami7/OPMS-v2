@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - نظام إدارة الخطط التشغيلية</title>
+    <link href="~/css/fonts.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2D4A22;
+            --primary-mid: #3A5C2E;
+            --primary-light: #4A7035;
+            --accent: #C9A84C;
+            --accent-light: #E8C96E;
+            --accent-dark: #A8862E;
+            --bg-body: #111D0E;
+            --card-bg: rgba(255,255,255,0.04);
+            --card-border: rgba(201,168,76,0.12);
+            --input-bg: rgba(255,255,255,0.06);
+            --input-border: rgba(255,255,255,0.1);
+            --input-focus: rgba(201,168,76,0.25);
+            --txt-1: #f1f5e9;
+            --txt-2: #a3b18a;
+            --txt-3: #6b7f5a;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'AlQabas', 'Segoe UI', Tahoma, sans-serif;
+            background: var(--bg-body);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            color: var(--txt-1);
+        }
+
+        .bg-layer {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        }
+        .bg-layer::before {
+            content: '';
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(45,74,34,0.4) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(201,168,76,0.08) 0%, transparent 40%),
+                radial-gradient(ellipse at 50% 50%, rgba(27,58,42,0.3) 0%, transparent 60%);
+        }
+        .bg-layer::after {
+            content: '';
+            position: absolute; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20 L20 0 L40 20 L20 40 Z' fill='none' stroke='rgba(74,112,53,0.04)' stroke-width='0.5'/%3E%3C/svg%3E");
+            background-size: 40px 40px;
+        }
+
+        .orb {
+            position: fixed; border-radius: 50%;
+            filter: blur(80px); pointer-events: none; z-index: 0;
+        }
+        .orb-1 {
+            width: 400px; height: 400px;
+            background: rgba(45,74,34,0.25);
+            top: -10%; left: -5%;
+            animation: orbFloat 12s ease-in-out infinite;
+        }
+        .orb-2 {
+            width: 300px; height: 300px;
+            background: rgba(201,168,76,0.08);
+            bottom: -5%; right: -5%;
+            animation: orbFloat 15s ease-in-out infinite reverse;
+        }
+        @@keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, -20px); }
+        }
+
+        .login-card {
+            position: relative; z-index: 1;
+            width: 100%; max-width: 440px; margin: 2rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 3rem 2.5rem 2.5rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            animation: cardIn .7s cubic-bezier(.16,1,.3,1) forwards;
+            opacity: 0; transform: translateY(30px) scale(0.98);
+        }
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 10%; right: 10%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            border-radius: 0 0 2px 2px;
+        }
+        @@keyframes cardIn { to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        .logo-section { text-align: center; margin-bottom: 2rem; }
+
+        .logo-wrap {
+            position: relative; display: inline-block;
+            width: 100px; height: 100px; margin-bottom: 1.2rem;
+        }
+        .logo-wrap img {
+            width: 100%; height: 100%; object-fit: contain;
+            filter: drop-shadow(0 4px 20px rgba(201,168,76,0.3));
+            position: relative; z-index: 2;
+        }
+        .logo-wrap::before {
+            content: ''; position: absolute; inset: -8px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(201,168,76,0.2);
+            animation: ringPulse 4s ease-in-out infinite;
+        }
+        .logo-wrap::after {
+            content: ''; position: absolute; inset: -20px;
+            border-radius: 50%;
+            border: 1px solid rgba(201,168,76,0.08);
+            animation: ringPulse 4s ease-in-out infinite 1s;
+        }
+        @@keyframes ringPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.06); opacity: 0.4; }
+        }
+
+        .sys-name { font-size: 1.45rem; font-weight: 800; color: var(--txt-1); line-height: 1.4; margin-bottom: .3rem; }
+        .sys-name-en { font-size: .7rem; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); font-weight: 400; }
+
+        .divider { height: 1px; background: linear-gradient(90deg, transparent, var(--card-border), transparent); margin: 1.5rem 0; }
+
+        .form-header { text-align: center; margin-bottom: 1.8rem; }
+        .form-header h2 { font-size: 1.3rem; font-weight: 700; color: var(--txt-1); margin-bottom: .25rem; }
+        .form-header p { font-size: .85rem; color: var(--txt-3); }
+
+        .err-box {
+            background: rgba(239,68,68,.08);
+            border: 1px solid rgba(239,68,68,.25);
+            border-radius: 10px; padding: .75rem 1rem;
+            margin-bottom: 1.25rem; color: #fca5a5;
+            font-size: .85rem; display: none;
+        }
+        .err-box:not(:empty) { display: block; }
+
+        .field { margin-bottom: 1.1rem; }
+        .field-label { display: block; font-size: .8rem; font-weight: 600; color: var(--txt-2); margin-bottom: .4rem; }
+
+        .field-control {
+            position: relative; display: flex; align-items: center;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 12px; transition: all .25s ease; overflow: hidden;
+        }
+        .field-control:focus-within {
+            border-color: var(--accent);
+            background: rgba(201,168,76,0.05);
+            box-shadow: 0 0 0 3px var(--input-focus);
+        }
+
+        .fc-icon {
+            width: 46px; height: 48px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--txt-3); flex-shrink: 0; transition: color .25s;
+            border-left: 1px solid rgba(255,255,255,0.06);
+        }
+        .field-control:focus-within .fc-icon { color: var(--accent); }
+
+        .fc-input {
+            flex: 1; height: 48px; background: transparent;
+            border: none; outline: none; padding: 0 .9rem;
+            font-size: .95rem; font-family: inherit;
+            color: var(--txt-1); caret-color: var(--accent);
+        }
+        .fc-input::placeholder { color: rgba(163,177,138,0.3); }
+
+        .fc-toggle {
+            width: 42px; height: 48px; background: transparent;
+            border: none; cursor: pointer; color: var(--txt-3);
+            display: flex; align-items: center; justify-content: center;
+            transition: color .25s;
+        }
+        .fc-toggle:hover { color: var(--accent); }
+
+        .field-error { display: block; font-size: .75rem; color: #fca5a5; margin-top: .3rem; }
+        .field-error:empty { display: none; }
+
+        .meta-row { display: flex; align-items: center; margin: 1.25rem 0; }
+        .chk-label { display: flex; align-items: center; gap: .6rem; cursor: pointer; user-select: none; }
+        .chk-label input { display: none; }
+        .chk-box {
+            width: 18px; height: 18px;
+            border: 1.5px solid rgba(163,177,138,0.3);
+            border-radius: 5px; position: relative; flex-shrink: 0; transition: all .2s;
+        }
+        .chk-box::after {
+            content: ''; position: absolute; display: none;
+            right: 4px; top: 1px; width: 5px; height: 10px;
+            border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);
+        }
+        .chk-label input:checked ~ .chk-box { background: var(--primary-mid); border-color: var(--primary-mid); }
+        .chk-label input:checked ~ .chk-box::after { display: block; }
+        .chk-text { font-size: .85rem; color: var(--txt-3); }
+
+        .btn-go {
+            width: 100%; height: 50px;
+            background: linear-gradient(135deg, var(--primary-mid) 0%, var(--primary) 100%);
+            border: 1px solid rgba(201,168,76,0.2);
+            border-radius: 12px; color: white;
+            font-size: 1rem; font-weight: 700; font-family: inherit;
+            cursor: pointer; display: flex;
+            align-items: center; justify-content: center; gap: .6rem;
+            position: relative; overflow: hidden;
+            transition: all .3s ease; margin-top: 1.5rem;
+        }
+        .btn-go::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(201,168,76,.15) 0%, transparent 60%);
+            border-radius: inherit;
+        }
+        .btn-go:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(45,74,34,0.5);
+            border-color: rgba(201,168,76,0.35);
+        }
+        .btn-go:active { transform: translateY(0); }
+        .btn-go .arrow-wrap {
+            width: 28px; height: 28px;
+            background: rgba(201,168,76,.2); border-radius: 7px;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform .3s;
+        }
+        .btn-go:hover .arrow-wrap { transform: translateX(-4px); }
+
+        .form-foot { text-align: center; margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.04); }
+        .form-foot p { font-size: .75rem; color: rgba(163,177,138,0.25); }
+
+        @@media (max-width: 480px) {
+            .login-card { margin: 1rem; padding: 2rem 1.5rem; border-radius: 18px; }
+            .logo-wrap { width: 80px; height: 80px; }
+            .sys-name { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-layer"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    @RenderBody()
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

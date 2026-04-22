@@ -1,0 +1,112 @@
+namespace OperationalPlanMS.Models
+{
+    /// <summary>
+    /// User roles for authorization
+    /// </summary>
+    public enum UserRole
+    {
+        SuperAdmin = 8, // مدير النظام الأعلى — يشوف كل الـ tenants
+        Admin = 1,      // مدير الوحدة (TenantAdmin)
+        Executive = 2,  // التنفيذي
+        Supervisor = 3, // المشرف
+        User = 4,       // مدير المشروع
+        StepUser = 7    // منفذ الخطوة
+    }
+
+    /// <summary>
+    /// Status for Initiatives and Projects (للتوافق مع DB - لم يعد مستخدماً في الواجهة)
+    /// </summary>
+    public enum Status
+    {
+        Draft = 0,
+        Pending = 1,
+        Approved = 2,
+        InProgress = 3,
+        OnHold = 4,
+        Completed = 5,
+        Cancelled = 6,
+        Delayed = 7
+    }
+
+    /// <summary>
+    /// Status for Steps
+    /// </summary>
+    public enum StepStatus
+    {
+        NotStarted = 0, // لم تبدأ
+        InProgress = 1, // جارية
+        Completed = 2,  // مكتملة
+        OnHold = 3,     // متوقفة
+        Cancelled = 4,  // ملغاة
+        Delayed = 5     // متأخرة ← جديد (تلقائي عند تجاوز التاريخ)
+    }
+
+    /// <summary>
+    /// Priority levels (للتوافق مع DB - لم يعد مستخدماً في الواجهة)
+    /// </summary>
+    public enum Priority
+    {
+        Highest = 1,
+        High = 2,
+        Medium = 3,
+        Low = 4,
+        Lowest = 5
+    }
+
+    /// <summary>
+    /// Milestone types (مجمد حالياً)
+    /// </summary>
+    public enum MilestoneType
+    {
+        Checkpoint = 0,
+        Review = 1,
+        Approval = 2,
+        Testing = 3,
+        Delivery = 4
+    }
+
+    /// <summary>
+    /// Progress update types
+    /// </summary>
+    public enum UpdateType
+    {
+        Regular = 0,    // تحديث عادي
+        Note = 1,       // ملاحظة
+        StatusChange = 2 // تغيير حالة
+    }
+
+    /// <summary>
+    /// Document categories
+    /// </summary>
+    public enum DocumentCategory
+    {
+        General = 0,
+        Report = 1,
+        Evidence = 2,
+        Attachment = 3
+    }
+
+    /// <summary>
+    /// Access level for InitiativeAccess (صلاحيات الوصول للمبادرة)
+    /// </summary>
+    public enum AccessLevel
+    {
+        ReadOnly = 0,       // اطلاع فقط
+        Contributor = 1,    // تعديل + إضافة
+        FullAccess = 2      // كل شيء بما فيه الحذف
+    }
+
+    /// <summary>
+    /// نوع العائق / سبب التأخر أو التوقف
+    /// </summary>
+    public enum ObstacleType
+    {
+        Financial = 0,        // مالي
+        HumanResource = 1,    // نقص كوادر بشرية
+        Technical = 2,        // تقني
+        Administrative = 3,   // إداري
+        External = 4,         // خارجي (جهة خارجية)
+        Procurement = 5,      // مشتريات / توريد
+        Other = 6             // أخرى
+    }
+}

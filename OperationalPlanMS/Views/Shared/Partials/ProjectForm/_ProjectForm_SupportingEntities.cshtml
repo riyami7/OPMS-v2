@@ -1,0 +1,67 @@
+@model OperationalPlanMS.Models.ViewModels.ProjectFormViewModel
+
+<!-- الجهات المساندة -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-building me-2"></i>الجهات المساندة</span>
+        <button type="button" class="btn btn-sm btn-primary" onclick="showAddSupportingEntity()">
+            <i class="bi bi-plus"></i> إضافة جهة
+        </button>
+    </div>
+    <div class="card-body">
+        <div id="addSupportingEntitySection" style="display: none;" class="mb-3 p-3 border rounded" style="background:var(--bg-card-light, #f8f9fa);">
+            <h6 class="mb-3"><i class="bi bi-plus-circle me-1"></i>إضافة جهة مساندة</h6>
+
+            <!-- اختيار نوع الإضافة -->
+            <div class="d-flex gap-2 mb-3">
+                <button type="button" class="btn btn-sm supporting-type-btn active" id="btnTypeOrg" onclick="toggleSupportingType('org')">
+                    <i class="bi bi-diagram-3 me-1"></i>من الهيكل التنظيمي
+                </button>
+                <button type="button" class="btn btn-sm supporting-type-btn" id="btnTypeFree" onclick="toggleSupportingType('free')">
+                    <i class="bi bi-pencil me-1"></i>إدخال يدوي
+                </button>
+            </div>
+
+            <!-- خيار الهيكل التنظيمي -->
+            <div id="supportingOrgSection">
+                <div id="supportingOrgTree"></div>
+            </div>
+
+            <!-- خيار النص الحر -->
+            <div id="supportingFreeSection" style="display:none;">
+                <input type="text" id="supportingFreeText" class="form-control" placeholder="اكتب اسم الجهة المساندة..." />
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                <button type="button" class="btn btn-sm btn-success" onclick="addSupportingEntity()">
+                    <i class="bi bi-check me-1"></i>إضافة
+                </button>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="cancelAddSupportingEntity()">إلغاء</button>
+            </div>
+        </div>
+
+        <div id="supportingEntitiesContainer"></div>
+        <div id="noSupportingEntities" class="text-muted text-center py-3">
+            <i class="bi bi-building me-1"></i>لم يتم اختيار أي جهة مساندة
+        </div>
+        <div id="supportingEntitiesInputs"></div>
+    </div>
+</div>
+
+<style>
+    .supporting-type-btn {
+        background: var(--bg-card-light, #f0f0f0);
+        border: 1px solid #d1d5db;
+        color: var(--text-dark, #333);
+        transition: all .2s;
+    }
+    .supporting-type-btn:hover {
+        border-color: var(--primary-mid, #3A5C2E);
+        color: var(--primary, #2D4A22);
+    }
+    .supporting-type-btn.active {
+        background: var(--primary, #2D4A22);
+        border-color: var(--primary, #2D4A22);
+        color: white;
+    }
+</style>

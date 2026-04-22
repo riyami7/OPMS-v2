@@ -1,0 +1,294 @@
+@model OperationalPlanMS.Models.ViewModels.InitiativeFormViewModel
+@{
+    ViewData["Title"] = "إضافة وحدة تنظيمية";
+}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-title">
+        <h4 class="mb-1"><i class="bi bi-plus-circle me-2 text-warning"></i>إضافة وحدة تنظيمية جديدة</h4>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+                <li class="breadcrumb-item"><a href="/Initiatives">الوحدات التنظيمية</a></li>
+                <li class="breadcrumb-item active">إضافة جديدة</li>
+            </ol>
+        </nav>
+    </div>
+    <a href="/Initiatives" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-right"></i>رجوع للقائمة
+    </a>
+</div>
+
+<form asp-action="Create" method="post">
+    <div class="row">
+        <!-- Main Info -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-info-circle me-2"></i>المعلومات الأساسية
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="Code" class="form-label"></label>
+                            <input asp-for="Code" class="form-control" readonly />
+                            <span asp-validation-for="Code" class="text-danger small"></span>
+                        </div>
+                        @*  <div class="col-md-4">
+                            <label asp-for="FiscalYearId" class="form-label"></label>
+                            <select asp-for="FiscalYearId" asp-items="Model.FiscalYears" class="form-select">
+                                <option value="">-- اختر السنة المالية --</option>
+                            </select>
+                            <span asp-validation-for="FiscalYearId" class="text-danger small"></span>
+                        </div> *@
+                        <div class="col-md-4">
+                            <!-- فارغ للتوازن -->
+                        </div>
+
+                        <!-- الهيكل التنظيمي من API -->
+                        <div class="col-12">
+                            <hr class="my-2">
+                            <h6 class="text-primary mb-3"><i class="bi bi-diagram-3 me-2"></i>الهيكل التنظيمي</h6>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">الوحدة التنظيمية</label>
+                            <div id="orgTreeContainer"></div>
+                        </div>
+                        <input type="hidden" asp-for="ExternalUnitId" id="ExternalUnitId" />
+                        <input type="hidden" asp-for="ExternalUnitName" id="ExternalUnitName" />
+
+                        <!-- المشرف من API -->
+                        <div class="col-md-6">
+                            <label class="form-label">مدير </label>
+                            <div class="position-relative">
+                                <div id="supervisorDisplay" style="display: none;"></div>
+                                <input type="text" id="supervisorSearch" class="form-control"
+                                       placeholder="ابحث برقم الموظف ..." autocomplete="off" />
+                                <input type="hidden" asp-for="SupervisorEmpNumber" id="SupervisorEmpNumber" />
+                                <input type="hidden" asp-for="SupervisorName" id="SupervisorName" />
+                                <input type="hidden" asp-for="SupervisorRank" id="SupervisorRank" />
+                                <div id="supervisorResults" class="search-dropdown"></div>
+                            </div>
+                            <small class="text-muted">ابحث عن المدير من النظام</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <!-- فارغ -->
+                        </div>
+
+                        <div class="col-12">
+                            <hr class="my-2">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="NameAr" class="form-label"></label>
+                            <input asp-for="NameAr" class="form-control" placeholder="اسم المديرية بالعربية" readonly />
+                            <span asp-validation-for="NameAr" class="text-danger small"></span>
+                        </div>
+                        @*   <div class="col-md-6">
+                            <label asp-for="NameEn" class="form-label"></label>
+                            <input asp-for="NameEn" class="form-control" placeholder="Enter initiative name in English" dir="ltr" />
+                            <span asp-validation-for="NameEn" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="DescriptionAr" class="form-label"></label>
+                            <textarea asp-for="DescriptionAr" class="form-control" rows="3" placeholder="وصف المديرية بالعربية"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="DescriptionEn" class="form-label"></label>
+                            <textarea asp-for="DescriptionEn" class="form-control" rows="3" placeholder="Initiative description in English" dir="ltr"></textarea>
+                        </div> *@
+                        @*  <div class="col-12">
+                            <label asp-for="StrategicObjective" class="form-label"></label>
+                            <input asp-for="StrategicObjective" class="form-control" placeholder="الهدف الاستراتيجي المرتبط بالمبادرة" />
+                        </div> *@
+                    </div>
+                </div>
+            </div>
+            @* 
+            <!-- Dates -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-calendar me-2"></i>التواريخ الفعلية
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="ActualStartDate" class="form-label"></label>
+                            <input asp-for="ActualStartDate" type="date" class="form-control" />
+                            <small class="text-muted">تاريخ بدء العمل الفعلي على المبادرة</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ActualEndDate" class="form-label"></label>
+                            <input asp-for="ActualEndDate" type="date" class="form-control" />
+                            <small class="text-muted">تاريخ الانتهاء المتوقع أو الفعلي</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Budget -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-currency-dollar me-2"></i>الميزانية
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Budget" class="form-label"></label>
+                            <div class="input-group">
+                                <input asp-for="Budget" type="number" step="0.01" class="form-control" placeholder="0.00" />
+                                <span class="input-group-text">ر.ع</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ActualCost" class="form-label"></label>
+                            <div class="input-group">
+                                <input asp-for="ActualCost" type="number" step="0.01" class="form-control" placeholder="0.00" />
+                                <span class="input-group-text">ر.ع</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> *@
+        </div>
+
+        <!-- Side Panel -->
+        <div class="col-lg-4">
+            <!-- Info Box -->
+            <div class="card mb-4 border-info">
+                <div class="card-header bg-info text-white">
+                    <i class="bi bi-lightbulb me-2"></i>معلومات مهمة
+                </div>
+                <div class="card-body">
+                    <p class="small mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        نسبة الإنجاز تُحسب تلقائياً من المشاريع
+                    </p>
+                    <p class="small mb-2">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        أضف المشاريع بعد إنشاء المديرية
+                    </p>
+                    <p class="small mb-0">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        يمكن إضافة الملاحظات من صفحة التفاصيل
+                    </p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-circle me-2"></i>حفظ
+                        </button>
+                        <a href="/Initiatives" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>إلغاء
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            OrgTreePicker.init({
+                containerId: 'orgTreeContainer',
+                hiddenInputId: 'ExternalUnitId',
+                hiddenNameId: 'ExternalUnitName',
+                rootCode: '00001',
+                onSelect: function(id, name){
+                     var nameField = document.querySelector('[name=NameAr]');
+                     if(nameField && name){
+                         nameField.value = name;
+                     }
+                 }
+            });
+        });
+
+        // ========== البحث عن المشرف من API ==========
+        let searchTimeout;
+        const supervisorSearch = document.getElementById('supervisorSearch');
+        const supervisorResults = document.getElementById('supervisorResults');
+        const supervisorDisplay = document.getElementById('supervisorDisplay');
+
+        supervisorSearch.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const term = this.value.trim();
+            if (term.length < 2) {
+                supervisorResults.classList.remove('show');
+                return;
+            }
+            searchTimeout = setTimeout(() => searchEmployees(term), 300);
+        });
+
+        async function searchEmployees(term) {
+            try {
+                const response = await fetch(`/api/OrganizationApi/employees/search?term=${encodeURIComponent(term)}`);
+                if (response.ok) {
+                    const employees = await response.json();
+                    showEmployeeResults(employees);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function showEmployeeResults(employees) {
+            if (employees.length === 0) {
+                supervisorResults.innerHTML = '<div class="p-2 text-muted text-center">لا توجد نتائج</div>';
+            } else {
+                supervisorResults.innerHTML = employees.map(emp => `
+                    <div class="item" onclick="selectSupervisor('${emp.empNumber}', '${emp.name}', '${emp.rank || ''}')">
+                        <div class="name">${emp.rank || ''} ${emp.name}</div>
+                        <div class="info">${emp.empNumber} - ${emp.position || ''}</div>
+                    </div>
+                `).join('');
+            }
+            supervisorResults.classList.add('show');
+        }
+
+        function selectSupervisor(empNumber, name, rank) {
+            document.getElementById('SupervisorEmpNumber').value = empNumber;
+            document.getElementById('SupervisorName').value = name;
+            document.getElementById('SupervisorRank').value = rank;
+
+            supervisorSearch.style.display = 'none';
+            supervisorDisplay.innerHTML = `
+                <div class="selected-item">
+                    <div>
+                        <div class="fw-bold">${rank} ${name}</div>
+                        <small class="text-muted">${empNumber}</small>
+                    </div>
+                    <span class="remove-btn" onclick="clearSupervisor()">
+                        <i class="bi bi-x-circle"></i>
+                    </span>
+                </div>
+            `;
+            supervisorDisplay.style.display = 'block';
+            supervisorResults.classList.remove('show');
+        }
+
+        function clearSupervisor() {
+            document.getElementById('SupervisorEmpNumber').value = '';
+            document.getElementById('SupervisorName').value = '';
+            document.getElementById('SupervisorRank').value = '';
+            supervisorSearch.value = '';
+            supervisorSearch.style.display = 'block';
+            supervisorDisplay.style.display = 'none';
+        }
+
+        // إخفاء النتائج عند النقر خارجها
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#supervisorSearch') && !e.target.closest('#supervisorResults')) {
+                supervisorResults.classList.remove('show');
+            }
+        });
+    </script>
+}

@@ -1,0 +1,89 @@
+@model OperationalPlanMS.Models.ViewModels.ProjectFormViewModel
+
+<!-- الهيكل التنظيمي -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-diagram-3 me-2"></i>الهيكل التنظيمي والمسؤولية
+    </div>
+    <div class="card-body">
+        <!-- شجرة الوحدات التنظيمية -->
+        <div class="row">
+            <div class="col-12 mb-3">
+                <label class="form-label">الوحدة التنظيمية <span class="text-danger">*</span></label>
+                <div id="orgTreeContainer"></div>
+                <input type="hidden" asp-for="ExternalUnitId" id="ExternalUnitId" />
+                <input type="hidden" asp-for="ExternalUnitName" id="ExternalUnitName" />
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="row">
+            <!-- مدير المشروع -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label"><i class="bi bi-person-badge me-1"></i>مدير الهدف التشغيلي</label>
+                <div class="position-relative">
+                    <div id="projectManagerDisplay" style="display: @(string.IsNullOrEmpty(Model.ProjectManagerEmpNumber) ? "none" : "block");">
+                        @if (!string.IsNullOrEmpty(Model.ProjectManagerEmpNumber))
+                        {
+                            <div class="selected-employee">
+                                <div>
+                                    <div class="fw-bold">@Model.ProjectManagerRank @Model.ProjectManagerName</div>
+                                    <small class="text-muted">@Model.ProjectManagerEmpNumber</small>
+                                </div>
+                                <span class="remove-btn" onclick="clearProjectManager()">
+                                    <i class="bi bi-x-circle"></i>
+                                </span>
+                            </div>
+                        }
+                    </div>
+                    <input type="text" id="projectManagerSearch" class="form-control"
+                           placeholder="ابحث برقم الموظف ..."
+                           style="display: @(string.IsNullOrEmpty(Model.ProjectManagerEmpNumber) ? "block" : "none");" />
+                    <input type="hidden" asp-for="ProjectManagerEmpNumber" id="ProjectManagerEmpNumber" />
+                    <input type="hidden" asp-for="ProjectManagerName" id="ProjectManagerName" />
+                    <input type="hidden" asp-for="ProjectManagerRank" id="ProjectManagerRank" />
+                    <div id="projectManagerResults" class="search-dropdown"></div>
+                </div>
+            </div>
+
+            <!-- مساعد مدير المشروع -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label"><i class="bi bi-person me-1"></i>مساعد مدير الهدف التشغيلي <small class="text-muted">(اختياري)</small></label>
+                <div class="position-relative">
+                    <div id="deputyManagerDisplay" style="display: @(string.IsNullOrEmpty(Model.DeputyManagerEmpNumber) ? "none" : "block");">
+                        @if (!string.IsNullOrEmpty(Model.DeputyManagerEmpNumber))
+                        {
+                            <div class="selected-employee">
+                                <div>
+                                    <div class="fw-bold">@Model.DeputyManagerRank @Model.DeputyManagerName</div>
+                                    <small class="text-muted">@Model.DeputyManagerEmpNumber</small>
+                                </div>
+                                <span class="remove-btn" onclick="clearDeputyManager()">
+                                    <i class="bi bi-x-circle"></i>
+                                </span>
+                            </div>
+                        }
+                    </div>
+                    <input type="text" id="deputyManagerSearch" class="form-control"
+                           placeholder="ابحث برقم الموظف ..."
+                           style="display: @(string.IsNullOrEmpty(Model.DeputyManagerEmpNumber) ? "block" : "none");" />
+                    <input type="hidden" asp-for="DeputyManagerEmpNumber" id="DeputyManagerEmpNumber" />
+                    <input type="hidden" asp-for="DeputyManagerName" id="DeputyManagerName" />
+                    <input type="hidden" asp-for="DeputyManagerRank" id="DeputyManagerRank" />
+                    <div id="deputyManagerResults" class="search-dropdown"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <label class="form-label"><i class="bi bi-bullseye me-1"></i>الأهداف الفرعية</label>
+                <div id="SubObjectivesContainer" class="border rounded p-2" style="min-height:44px; max-height:200px; overflow-y:auto; background:#fafbfc;">
+                    <small class="text-muted">-- اختر الوحدة أولاً --</small>
+                </div>
+                <small class="text-muted"><i class="bi bi-info-circle me-1"></i>اختياري — يمكنك تحديد أكثر من هدف</small>
+            </div>
+        </div>
+    </div>
+</div>

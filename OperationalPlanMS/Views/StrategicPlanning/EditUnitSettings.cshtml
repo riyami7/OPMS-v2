@@ -1,0 +1,126 @@
+@model OperationalPlanMS.Models.ViewModels.UnitSettingsFormViewModel
+@{
+    ViewData["Title"] = "تعديل إعدادات الوحدة";
+}
+
+<style>
+    .cascade-select {
+        transition: all 0.3s;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-1">تعديل إعدادات الوحدة</h4>
+        <p class="text-muted mb-0">@Model.UnitName</p>
+    </div>
+    <a href="/StrategicPlanning/VisionMission" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-right me-2"></i>رجوع
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-diagram-3 me-2"></i>الرؤية والمهمة للوحدة التنظيمية
+            </div>
+            <div class="card-body">
+                <form asp-action="EditUnitSettings" method="post">
+                    <input type="hidden" asp-for="Id" />
+
+                    <!-- الهيكل التنظيمي من API -->
+                    <div class="mb-4">
+                        <label class="form-label"><i class="bi bi-diagram-3 me-1"></i>الوحدة التنظيمية</label>
+                        <div id="editUnitOrgTree"></div>
+                        <input type="hidden" asp-for="ExternalUnitId" id="ExternalUnitId" />
+                        <input type="hidden" asp-for="ExternalUnitName" id="ExternalUnitName" />
+                    </div>
+
+                    <div class="row">
+                        <!-- الرؤية -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="bi bi-eye me-2"></i>الرؤية
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">الرؤية بالعربية</label>
+                                        <textarea asp-for="VisionAr" class="form-control" rows="4"></textarea>
+                                    </div>
+                                    <div class="mb-0">
+                                        <label class="form-label">الرؤية بالإنجليزية</label>
+                                        <textarea asp-for="VisionEn" class="form-control" rows="4" dir="ltr"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- المهمة -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 border-success">
+                                <div class="card-header bg-success text-white">
+                                    <i class="bi bi-bullseye me-2"></i>المهمة
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">المهمة بالعربية</label>
+                                        <textarea asp-for="MissionAr" class="form-control" rows="4"></textarea>
+                                    </div>
+                                    <div class="mb-0">
+                                        <label class="form-label">المهمة بالإنجليزية</label>
+                                        <textarea asp-for="MissionEn" class="form-control" rows="4" dir="ltr"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- الوصف الإضافي -->
+                        <div class="col-12 mb-3">
+                            <div class="card">
+                                <div class="card-header">
+                                    <i class="bi bi-file-text me-2"></i>وصف إضافي (اختياري)
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3 mb-md-0">
+                                            <label class="form-label">الوصف بالعربية</label>
+                                            <textarea asp-for="DescriptionAr" class="form-control" rows="3"></textarea>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">الوصف بالإنجليزية</label>
+                                            <textarea asp-for="DescriptionEn" class="form-control" rows="3" dir="ltr"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="/StrategicPlanning/VisionMission" class="btn btn-secondary">إلغاء</a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-check-lg me-2"></i>حفظ التعديلات
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            OrgTreePicker.init({
+                containerId: 'editUnitOrgTree',
+                hiddenInputId: 'ExternalUnitId',
+                hiddenNameId: 'ExternalUnitName',
+                selectedId: '@(Model.ExternalUnitId?.ToString() ?? "")',
+                rootCode: '00001'
+            });
+        });
+    </script>
+}

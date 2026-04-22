@@ -1,0 +1,612 @@
+@model OperationalPlanMS.Models.ViewModels.StepFormViewModel
+@{
+    ViewData["Title"] = "إضافة خطوة تنفيذية";
+    var projectName = ViewBag.ProjectName as string;
+    var initiativeName = ViewBag.InitiativeName as string;
+    var usedWeight = ViewBag.UsedWeight as decimal? ?? 0;
+    var remainingWeight = ViewBag.RemainingWeight as decimal? ?? 100;
+}
+
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-title">
+        <h4 class="mb-1"><i class="bi bi-plus-circle me-2 text-info"></i>إضافة خطوة تنفيذية جديدة</h4>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+                @if (!string.IsNullOrEmpty(initiativeName))
+                {
+                    <li class="breadcrumb-item"><i class="bi bi-lightning-charge me-1 text-warning"></i>@initiativeName</li>
+                }
+                <li class="breadcrumb-item">
+                    <a href="/Projects/Details/@Model.ProjectId"><i class="bi bi-folder me-1 text-success"></i>@projectName</a>
+                </li>
+                <li class="breadcrumb-item active">إضافة خطوة تنفيذية</li>
+            </ol>
+        </nav>
+    </div>
+    <a href="/Projects/Details/@Model.ProjectId" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-right"></i>رجوع للهدف التشغيلي
+    </a>
+</div>
+
+<!-- Weight Alert -->
+@if (remainingWeight < 100)
+{
+    <div class="alert @(remainingWeight > 0 ? "alert-info" : "alert-warning")">
+        <i class="bi bi-info-circle me-2"></i>
+        <strong>الأوزان:</strong>
+        الوزن المستخدم: <strong>@((int)usedWeight)%</strong> |
+        الوزن المتبقي: <strong>@((int)remainingWeight)%</strong>
+        @if (remainingWeight <= 0)
+        {
+            <br>
+
+            <small>⚠️ لا يوجد وزن متبقي. يجب تعديل أوزان الخطوات الحالية أولاً.</small>
+        }
+    </div>
+}
+
+<form asp-action="Create" method="post">
+    <input type="hidden" asp-for="ProjectId" />
+
+    <div class="row">
+        <!-- Main Info -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-info-circle me-2"></i>المعلومات الأساسية
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label asp-for="StepNumber" class="form-label"></label>
+                            <input asp-for="StepNumber" type="number" class="form-control" min="1" />
+                            <span asp-validation-for="StepNumber" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-9">
+                            <label class="form-label">الهدف التشغيلي</label>
+                            <input type="text" class="form-control" value="@projectName" readonly disabled />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="NameAr" class="form-label"></label>
+                            <input asp-for="NameAr" class="form-control" placeholder="أدخل اسم الخطوة التنفيذية بالعربية" />
+                            <span asp-validation-for="NameAr" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="NameEn" class="form-label"></label>
+                            <input asp-for="NameEn" class="form-control" placeholder="Enter step name in English" dir="ltr" />
+                            <span asp-validation-for="NameEn" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="DescriptionAr" class="form-label"></label>
+                            <textarea asp-for="DescriptionAr" class="form-control" rows="3" placeholder="وصف الخطوة التنفيذية بالعربية"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="DescriptionEn" class="form-label"></label>
+                            <textarea asp-for="DescriptionEn" class="form-control" rows="3" placeholder="Step description in English" dir="ltr"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Notes" class="form-label"></label>
+                            <textarea asp-for="Notes" class="form-control" rows="2" placeholder="ملاحظات إضافية..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dates - التواريخ -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-calendar me-2"></i>التواريخ
+                </div>
+                <div class="card-body">
+                    <h6 class="text-primary mb-3"><i class="bi bi-calendar-check me-1"></i>التواريخ المتوقعة <span class="text-danger">*</span></h6>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="PlannedStartDate" class="form-label"></label>
+                            <input asp-for="PlannedStartDate" type="date" class="form-control" />
+                            <span asp-validation-for="PlannedStartDate" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="PlannedEndDate" class="form-label"></label>
+                            <input asp-for="PlannedEndDate" type="date" class="form-control" />
+                            <span asp-validation-for="PlannedEndDate" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="text-muted mb-3"><i class="bi bi-calendar2-event me-1"></i>التواريخ الفعلية <small>(اختياري)</small></h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="ActualStartDate" class="form-label"></label>
+                            <input asp-for="ActualStartDate" type="date" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ActualEndDate" class="form-label"></label>
+                            <input asp-for="ActualEndDate" type="date" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- مؤشرات الأداء KPIs -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-graph-up me-2"></i>مؤشرات الأداء</span>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="addKPI()">
+                        <i class="bi bi-plus"></i> إضافة مؤشر
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="kpiContainer"></div>
+                    <div id="noKPIs" class="text-muted text-center py-3">
+                        <i class="bi bi-graph-up me-1"></i>لم يتم إضافة مؤشرات أداء
+                    </div>
+                </div>
+            </div>
+
+            <!-- الجهات المساندة -->
+            @if (Model.AvailableSupportingUnits.Any())
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-building me-2"></i>الجهات المساندة
+                    </div>
+                    <div class="card-body">
+                        @foreach (var unit in Model.AvailableSupportingUnits)
+                        {
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox"
+                                       name="SelectedSupportingUnitIds" value="@unit.ProjectSupportingUnitId"
+                                       id="su_@unit.ProjectSupportingUnitId"
+                                       @(unit.IsSelected ? "checked" : "") />
+                                <label class="form-check-label" for="su_@unit.ProjectSupportingUnitId">
+                                    <i class="bi bi-building me-1 text-info"></i>@unit.UnitName
+                                </label>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Side Panel -->
+        <div class="col-lg-4">
+            <!-- Weight & Progress -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-bar-chart me-2"></i>الوزن والإنجاز
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Weight" class="form-label fw-bold"></label>
+                        <div class="input-group">
+                            <input asp-for="Weight" type="number" step="0.01" min="0" max="@remainingWeight" class="form-control" id="weightInput" />
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <span asp-validation-for="Weight" class="text-danger small"></span>
+                        <small class="text-muted d-block mt-1">
+                            الحد الأقصى المتاح: <strong>@((int)remainingWeight)%</strong>
+                        </small>
+                    </div>
+                    <hr />
+                    <div class="mb-3">
+                        <label asp-for="ProgressPercentage" class="form-label"></label>
+                        <div class="input-group">
+                            <input name="ProgressPercentage" type="number" step="1" min="0" max="100" value="@((int)Model.ProgressPercentage)" class="form-control" id="progressInput" />
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <span asp-validation-for="ProgressPercentage" class="text-danger small"></span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-primary" id="progressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="card mb-4 border-info">
+                <div class="card-header bg-info text-white">
+                    <i class="bi bi-lightbulb me-2"></i>كيف يعمل النظام
+                </div>
+                <div class="card-body">
+                    <p class="small mb-2">
+                        <i class="bi bi-1-circle text-primary me-2"></i>
+                        <strong>الوزن:</strong> يمثل نسبة هذه الخطوة التنفيذية من الهدف التشغيلي
+                    </p>
+                    <p class="small mb-2">
+                        <i class="bi bi-2-circle text-primary me-2"></i>
+                        <strong>عند إنجاز 100%:</strong> يُضاف الوزن لنسبة الهدف التشغيلي
+                    </p>
+                    <p class="small mb-2">
+                        <i class="bi bi-3-circle text-primary me-2"></i>
+                        <strong>الحالة:</strong> تُحسب تلقائياً (مكتمل/متأخر/جاري)
+                    </p>
+                    <p class="small mb-0">
+                        <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                        <strong>التأخير:</strong> إذا تجاوز تاريخ النهاية ولم تكتمل
+                    </p>
+                </div>
+            </div>
+
+            <!-- Assignment -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-person me-2"></i>التعيين
+                </div>
+                <div class="card-body">
+                    <!-- مسؤول الخطوة التنفيذية - Tabs: بحث / نص حر -->
+                    <div class="mb-3">
+                        <label class="form-label">المسؤول عن الخطوة التنفيذية</label>
+
+                        <!-- Tabs navigation -->
+                        <ul class="nav nav-tabs nav-tabs-sm mb-2" role="tablist" id="assignedToTabs">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" type="button" data-bs-toggle="tab"
+                                        data-bs-target="#searchTab" role="tab"
+                                        id="searchTabBtn"
+                                        onclick="switchAssignedToMode('search')">
+                                    <i class="bi bi-search me-1"></i>بحث من النظام
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" type="button" data-bs-toggle="tab"
+                                        data-bs-target="#manualTab" role="tab"
+                                        id="manualTabBtn"
+                                        onclick="switchAssignedToMode('manual')">
+                                    <i class="bi bi-pencil me-1"></i>إدخال يدوي
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tabs content -->
+                        <div class="tab-content">
+                            <!-- Tab 1: البحث من النظام -->
+                            <div class="tab-pane fade show active" id="searchTab" role="tabpanel">
+                                <div class="position-relative">
+                                    <div id="assignedToDisplay" style="display: none;"></div>
+                                    <input type="text" id="assignedToSearch" class="form-control"
+                                           placeholder="ابحث برقم الموظف أو الاسم..." autocomplete="off" />
+                                    <div id="assignedToResults" class="search-dropdown"></div>
+                                </div>
+                                <small class="text-muted">ابحث عن الموظف من النظام</small>
+                            </div>
+
+                            <!-- Tab 2: الإدخال اليدوي -->
+                            <div class="tab-pane fade" id="manualTab" role="tabpanel">
+                                <textarea id="assignedToManual" class="form-control" rows="3"
+                                          placeholder="أدخل اسم المسؤول ورتبته..."></textarea>
+                                <small class="text-muted">أدخل بيانات المسؤول كنص حر (غير مرتبط بموظف من النظام)</small>
+                            </div>
+                        </div>
+
+                        <!-- Hidden fields — تُملأ تلقائياً حسب التاب المختار -->
+                        <input type="hidden" asp-for="AssignedToEmpNumber" id="AssignedToEmpNumber" />
+                        <input type="hidden" asp-for="AssignedToName" id="AssignedToName" />
+                        <input type="hidden" asp-for="AssignedToRank" id="AssignedToRank" />
+                    </div>
+
+                    <!-- فريق العمل (جديد) -->
+                    <div class="mb-3">
+                        <label class="form-label d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-people me-1"></i>فريق العمل <small class="text-muted">(اختياري)</small></span>
+                            <span class="badge bg-secondary" id="teamCount">0</span>
+                        </label>
+                        <div id="teamMembersContainer"></div>
+                        <div class="position-relative mt-1">
+                            <div class="input-group input-group-sm">
+                                <input type="text" id="teamMemberSearch" class="form-control"
+                                       placeholder="ابحث لإضافة عضو..." autocomplete="off" />
+                            </div>
+                            <div id="teamMemberResults" class="search-dropdown"></div>
+                        </div>
+                        <div id="teamMembersInputs"></div>
+                    </div>
+
+                    <div>
+                        <label asp-for="DependsOnStepId" class="form-label"></label>
+                        <select asp-for="DependsOnStepId" asp-items="Model.DependsOnSteps" class="form-select">
+                            <option value="">-- لا تعتمد على خطوة تنفيذية --</option>
+                        </select>
+                        <small class="text-muted">الخطوة التنفيذية  التي يجب إكمالها أولاً</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" @(remainingWeight <= 0 ? "disabled" : "")>
+                            <i class="bi bi-check-circle me-2"></i>حفظ الخطوة التنفيذية
+                        </button>
+                        <a href="/Projects/Details/@Model.ProjectId" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>إلغاء
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('progressInput').addEventListener('input', function() {
+            document.getElementById('progressBar').style.width = this.value + '%';
+        });
+
+        // تحقق من الوزن
+        document.getElementById('weightInput').addEventListener('input', function() {
+            var max = @remainingWeight;
+            if (parseFloat(this.value) > max) {
+                this.value = max;
+            }
+        });
+
+        // ========== البحث عن الموظف من API ==========
+        let searchTimeout;
+        const assignedToSearch = document.getElementById('assignedToSearch');
+        const assignedToResults = document.getElementById('assignedToResults');
+        const assignedToDisplay = document.getElementById('assignedToDisplay');
+
+        assignedToSearch.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const term = this.value.trim();
+            if (term.length < 2) {
+                assignedToResults.classList.remove('show');
+                return;
+            }
+            searchTimeout = setTimeout(() => searchEmployees(term), 300);
+        });
+
+        async function searchEmployees(term) {
+            try {
+                const response = await fetch(`/api/OrganizationApi/employees/search?term=${encodeURIComponent(term)}`);
+                if (response.ok) {
+                    const employees = await response.json();
+                    showEmployeeResults(employees);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function showEmployeeResults(employees) {
+            if (employees.length === 0) {
+                assignedToResults.innerHTML = '<div class="p-2 text-muted text-center">لا توجد نتائج</div>';
+            } else {
+                assignedToResults.innerHTML = employees.map(emp => `
+                    <div class="item" onclick="selectEmployee('${emp.empNumber}', '${emp.name}', '${emp.rank || ''}')">
+                        <div class="emp-name">${emp.rank || ''} ${emp.name}</div>
+                        <div class="emp-info">${emp.empNumber} - ${emp.position || ''}</div>
+                    </div>
+                `).join('');
+            }
+            assignedToResults.classList.add('show');
+        }
+
+        function selectEmployee(empNumber, name, rank) {
+            document.getElementById('AssignedToEmpNumber').value = empNumber;
+            document.getElementById('AssignedToName').value = name;
+            document.getElementById('AssignedToRank').value = rank;
+
+            assignedToSearch.style.display = 'none';
+            assignedToDisplay.innerHTML = `
+                <div class="selected-employee">
+                    <div>
+                        <div class="fw-bold">${rank} ${name}</div>
+                        <small class="text-muted">${empNumber}</small>
+                    </div>
+                    <span class="remove-btn" onclick="clearEmployee()">
+                        <i class="bi bi-x-circle"></i>
+                    </span>
+                </div>
+            `;
+            assignedToDisplay.style.display = 'block';
+            assignedToResults.classList.remove('show');
+        }
+
+        function clearEmployee() {
+            document.getElementById('AssignedToEmpNumber').value = '';
+            document.getElementById('AssignedToName').value = '';
+            document.getElementById('AssignedToRank').value = '';
+            assignedToSearch.value = '';
+            assignedToSearch.style.display = 'block';
+            assignedToDisplay.style.display = 'none';
+        }
+
+        // ========== التبديل بين وضع البحث والإدخال اليدوي ==========
+        let currentAssignedToMode = 'search'; // 'search' أو 'manual'
+
+        function switchAssignedToMode(mode) {
+            currentAssignedToMode = mode;
+
+            if (mode === 'search') {
+                // التبديل إلى وضع البحث: نظّف النص الحر وحدّث الـ hidden fields من الاختيار الحالي (إن وُجد)
+                document.getElementById('assignedToManual').value = '';
+
+                // إذا فيه موظف مختار من قبل، رجّع بياناته
+                // (الـ hidden fields قد تحتوي على بيانات النص الحر، نظّفها)
+                const empNumberField = document.getElementById('AssignedToEmpNumber');
+                // لو ما فيه موظف مختار، نظّف الـ hiddens
+                if (!empNumberField.value) {
+                    document.getElementById('AssignedToName').value = '';
+                    document.getElementById('AssignedToRank').value = '';
+                }
+            } else {
+                // التبديل إلى وضع الإدخال اليدوي: نظّف اختيار الموظف
+                clearEmployee();
+                // حدّث الـ hidden fields من النص الحر (لو فيه)
+                updateManualAssignedTo();
+            }
+        }
+
+        // ========== معالجة الإدخال اليدوي ==========
+        const assignedToManual = document.getElementById('assignedToManual');
+
+        assignedToManual.addEventListener('input', updateManualAssignedTo);
+
+        function updateManualAssignedTo() {
+            const text = assignedToManual.value.trim();
+            if (currentAssignedToMode === 'manual') {
+                // في وضع الإدخال اليدوي: الاسم = النص كامل، الرتبة ورقم الموظف فاضيين
+                document.getElementById('AssignedToEmpNumber').value = '';
+                document.getElementById('AssignedToName').value = text;
+                document.getElementById('AssignedToRank').value = '';
+            }
+        }
+
+        // إخفاء النتائج عند النقر خارجها
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#assignedToSearch') && !e.target.closest('#assignedToResults')) {
+                assignedToResults.classList.remove('show');
+            }
+            if (!e.target.closest('#teamMemberSearch') && !e.target.closest('#teamMemberResults')) {
+                document.getElementById('teamMemberResults').classList.remove('show');
+            }
+        });
+
+        // ========== فريق العمل ==========
+        let teamMembers = [];
+
+        function renderTeamMembers() {
+            const container = document.getElementById('teamMembersContainer');
+            const inputsContainer = document.getElementById('teamMembersInputs');
+            document.getElementById('teamCount').textContent = teamMembers.length;
+
+            container.innerHTML = teamMembers.map((m, i) => `
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="flex-grow-1">
+                        <div class="selected-employee small-employee">
+                            <div class="d-flex align-items-center gap-2 flex-grow-1">
+                                <div>
+                                    <span class="fw-bold">${m.rank || ''} ${m.name}</span>
+                                    <small class="text-muted me-1">(${m.empNumber})</small>
+                                </div>
+                                <input type="text" class="form-control form-control-sm" style="max-width:140px;"
+                                       placeholder="الدور..." value="${m.role || ''}"
+                                       onchange="updateTeamRole(${i}, this.value)" />
+                            </div>
+                            <span class="remove-btn" onclick="removeTeamMember(${i})">
+                                <i class="bi bi-x-circle"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            inputsContainer.innerHTML = teamMembers.map((m, i) => `
+                <input type="hidden" name="TeamMembers[${i}].EmpNumber" value="${m.empNumber}" />
+                <input type="hidden" name="TeamMembers[${i}].Name" value="${m.name}" />
+                <input type="hidden" name="TeamMembers[${i}].Rank" value="${m.rank || ''}" />
+                <input type="hidden" name="TeamMembers[${i}].Role" value="${m.role || ''}" />
+            `).join('');
+        }
+
+        function updateTeamRole(index, role) {
+            teamMembers[index].role = role;
+            // تحديث hidden input فقط
+            const input = document.querySelector(`input[name="TeamMembers[${index}].Role"]`);
+            if (input) input.value = role;
+        }
+
+        function removeTeamMember(index) {
+            teamMembers.splice(index, 1);
+            renderTeamMembers();
+        }
+        window.removeTeamMember = removeTeamMember;
+        window.updateTeamRole = updateTeamRole;
+
+        // بحث عضو فريق
+        let teamSearchTimeout;
+        const teamMemberSearch = document.getElementById('teamMemberSearch');
+        const teamMemberResults = document.getElementById('teamMemberResults');
+
+        teamMemberSearch.addEventListener('input', function() {
+            clearTimeout(teamSearchTimeout);
+            const term = this.value.trim();
+            if (term.length < 2) {
+                teamMemberResults.classList.remove('show');
+                return;
+            }
+            teamSearchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/OrganizationApi/employees/search?term=${encodeURIComponent(term)}`);
+                    if (response.ok) {
+                        const employees = await response.json();
+                        const existingNums = teamMembers.map(m => m.empNumber);
+                        teamMemberResults.innerHTML = employees.length === 0
+                            ? '<div class="p-2 text-muted text-center">لا توجد نتائج</div>'
+                            : employees.map(emp => {
+                                const added = existingNums.includes(emp.empNumber);
+                                return `<div class="item ${added ? 'disabled' : ''}"
+                                    ${added ? '' : `onclick="addTeamMember('${emp.empNumber}', '${emp.name}', '${emp.rank || ''}')"`}>
+                                    <div class="emp-name">${emp.rank || ''} ${emp.name}</div>
+                                    <div class="emp-info">${emp.empNumber}${added ? ' <span class="text-success">✓ مضاف</span>' : ''}</div>
+                                </div>`;
+                            }).join('');
+                        teamMemberResults.classList.add('show');
+                    }
+                } catch (err) { console.error(err); }
+            }, 300);
+        });
+
+        function addTeamMember(empNumber, name, rank) {
+            if (teamMembers.find(m => m.empNumber === empNumber)) return;
+            teamMembers.push({ empNumber, name, rank, role: '' });
+            teamMemberSearch.value = '';
+            teamMemberResults.classList.remove('show');
+            renderTeamMembers();
+        }
+        window.addTeamMember = addTeamMember;
+
+        // ========== مؤشرات الأداء KPIs ==========
+        var kpiList = [];
+        var kpiCounter = 0;
+
+        function renderKPIs() {
+            var container = document.getElementById('kpiContainer');
+            var noKPIs = document.getElementById('noKPIs');
+            if (kpiList.length === 0) {
+                container.innerHTML = '';
+                noKPIs.style.display = 'block';
+                return;
+            }
+            noKPIs.style.display = 'none';
+            var html = '';
+            for (var i = 0; i < kpiList.length; i++) {
+                html += '<div class="input-group mb-2">' +
+                    '<span class="input-group-text"><i class="bi bi-graph-up"></i></span>' +
+                    '<input type="text" name="KPIIndicators[' + i + ']" value="' + (kpiList[i] || '').replace(/"/g, '&quot;') + '" class="form-control" placeholder="مؤشر الأداء..." onchange="updateKPI(' + i + ', this.value)" />' +
+                    '<button type="button" class="btn btn-outline-danger" onclick="removeKPI(' + i + ')"><i class="bi bi-trash"></i></button>' +
+                    '</div>';
+            }
+            container.innerHTML = html;
+        }
+
+        function addKPI() {
+            kpiList.push('');
+            renderKPIs();
+            // Focus على الحقل الجديد
+            var inputs = document.querySelectorAll('#kpiContainer input[type="text"]');
+            if (inputs.length > 0) inputs[inputs.length - 1].focus();
+        }
+
+        function updateKPI(index, value) {
+            kpiList[index] = value;
+        }
+
+        function removeKPI(index) {
+            kpiList.splice(index, 1);
+            renderKPIs();
+        }
+
+        window.addKPI = addKPI;
+        window.updateKPI = updateKPI;
+        window.removeKPI = removeKPI;
+
+        renderKPIs();
+    </script>
+}

@@ -1,0 +1,474 @@
+@model OperationalPlanMS.Models.ViewModels.InitiativeDetailsViewModel
+@using OperationalPlanMS.Models.Entities
+@{
+    ViewData["Title"] = Model.Initiative.NameAr;
+    var canEdit = (bool)(ViewBag.CanEdit ?? false);
+    var isAdmin = (ViewBag.UserRole as UserRole?) == UserRole.Admin;
+
+    var unitName = !string.IsNullOrEmpty(Model.Initiative.ExternalUnitName)
+        ? Model.Initiative.ExternalUnitName
+        : Model.Initiative.ExternalUnitName ?? "-";
+
+    var supervisorName = !string.IsNullOrEmpty(Model.Initiative.SupervisorName)
+        ? Model.Initiative.SupervisorName
+        : Model.Initiative.Supervisor?.FullNameAr ?? "-";
+
+    var supervisorRank = !string.IsNullOrEmpty(Model.Initiative.SupervisorRank)
+        ? Model.Initiative.SupervisorRank
+        : "";
+
+    var supervisorEmpNumber = !string.IsNullOrEmpty(Model.Initiative.SupervisorEmpNumber)
+        ? Model.Initiative.SupervisorEmpNumber
+        : "";
+
+    var externalUnitId = Model.Initiative.ExternalUnitId;
+}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-title">
+        <h4 class="mb-1"><i class="bi bi-lightning-charge me-2 text-warning"></i>@Model.Initiative.NameAr</h4>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+                <li class="breadcrumb-item"><a href="/Initiatives">الوحدات التنظيمية</a></li>
+                <li class="breadcrumb-item active">@Model.Initiative.Code</li>
+            </ol>
+        </nav>
+    </div>
+    <div class="page-header-actions">
+        @if (canEdit)
+        {
+            <a href="/Initiatives/Edit/@Model.Initiative.Id" class="btn btn-warning">
+                <i class="bi bi-pencil"></i>تعديل
+            </a>
+        }
+        <a href="/Initiatives" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-right"></i>رجوع
+        </a>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row mb-4 g-3">
+    <div class="col-md-3 col-6">
+        <div class="card h-100 text-center" style="border-top:3px solid var(--primary-light);">
+            <div class="card-body py-3">
+                <div style="font-size:1.8rem; color:var(--primary-light);"><i class="bi bi-folder"></i></div>
+                <div style="font-size:2rem; font-weight:800; color:var(--text-dark); line-height:1.1;">@Model.TotalProjects</div>
+                <div class="text-muted mt-1" style="font-size:.8rem;">المشاريع</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card h-100 text-center" style="border-top:3px solid var(--success);">
+            <div class="card-body py-3">
+                <div style="font-size:1.8rem; color:var(--success);"><i class="bi bi-check-circle"></i></div>
+                <div style="font-size:2rem; font-weight:800; color:var(--text-dark); line-height:1.1;">@Model.CompletedProjects</div>
+                <div class="text-muted mt-1" style="font-size:.8rem;">مشاريع مكتملة</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card h-100 text-center" style="border-top:3px solid var(--info);">
+            <div class="card-body py-3">
+                <div style="font-size:1.8rem; color:var(--info);"><i class="bi bi-percent"></i></div>
+                <div style="font-size:2rem; font-weight:800; color:var(--text-dark); line-height:1.1;">@Model.AverageProgress%</div>
+                <div class="text-muted mt-1" style="font-size:.8rem;">متوسط الإنجاز</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card h-100 text-center" style="border-top:3px solid var(--warning);">
+            <div class="card-body py-3">
+                <div style="font-size:1.8rem; color:var(--warning);"><i class="bi bi-cash"></i></div>
+                <div style="font-size:1.4rem; font-weight:800; color:var(--text-dark); line-height:1.1;">@Model.TotalBudget.ToString("N0")</div>
+                <div class="text-muted mt-1" style="font-size:.8rem;">إجمالي الميزانية</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <!-- Basic Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>المعلومات الأساسية
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <strong class="text-muted d-block">الوصف بالعربية</strong>
+                        <p>@(Model.Initiative.DescriptionAr ?? "لا يوجد وصف")</p>
+                    </div>
+                   @*  <div class="col-md-6 mb-3">
+                        <strong class="text-muted d-block">الوصف بالإنجليزية</strong>
+                        <p dir="ltr" class="text-end">@(Model.Initiative.DescriptionEn ?? "No description")</p>
+                    </div> *@
+                    @if (!string.IsNullOrEmpty(Model.Initiative.StrategicObjective))
+                    {
+                        <div class="col-12">
+                            <strong class="text-muted d-block">الهدف الاستراتيجي</strong>
+                            <p class="mb-0">@Model.Initiative.StrategicObjective</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-folder me-2"></i>الأهداف التشغيلية (@Model.Projects.Count)</span>
+                @if (canEdit)
+                {
+                    <a href="/Projects/Create?initiativeId=@Model.Initiative.Id" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus me-1"></i>إضافة هدف تشغيلي
+                    </a>
+                }
+            </div>
+            <div class="card-body p-0">
+                @if (Model.Projects.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>الهدف التشغيلي</th>
+                                    <th>مدير الهدف التشغيلي</th>
+                                    <th> الخطوات التنفيذية</th>
+                                    <th>التقدم</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var project in Model.Projects)
+                                {
+                                    var stepsCount = project.Steps?.Count(s => !s.IsDeleted) ?? 0;
+                                    var completedSteps = project.Steps?.Count(s => !s.IsDeleted && s.ProgressPercentage >= 100) ?? 0;
+                                    var progressClass = project.ProgressPercentage < 40 ? "bg-danger" :
+                                    project.ProgressPercentage < 70 ? "bg-warning" : "bg-success";
+                                    <tr>
+                                        <td>
+                                            <a href="/Projects/Details/@project.Id" class="fw-bold">@project.NameAr</a>
+                                            <br><small class="text-muted">@project.Code</small>
+                                        </td>
+                                        <td>@(project.ProjectManager?.FullNameAr ?? "-")</td>
+                                        <td>
+                                            <span class="badge bg-secondary">@completedSteps / @stepsCount</span>
+                                        </td>
+                                        <td style="width: 180px;">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="progress flex-fill" style="height: 8px;">
+                                                    <div class="progress-bar @progressClass" style="width: @project.ProgressPercentage%"></div>
+                                                </div>
+                                                <small class="text-nowrap fw-bold">@project.ProgressPercentage%</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a href="/Projects/Details/@project.Id" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            @if (canEdit)
+                                            {
+                                                <a href="/Projects/Edit/@project.Id" class="btn btn-sm btn-outline-warning">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-folder" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">لا توجد أهداف التشغيلية</p>
+                        @if (canEdit)
+                        {
+                            <a href="/Projects/Create?initiativeId=@Model.Initiative.Id" class="btn btn-primary mt-3">
+                                <i class="bi bi-plus-circle me-2"></i>إضافة هدف تشغيلي
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        @await Html.PartialAsync("Partials/_NotesSection", new OperationalPlanMS.Views.Shared.Partials.NotesSectionModel
+   {
+       Controller = "Initiatives",
+       EntityId = Model.Initiative.Id,
+       EntityIdFieldName = "id",
+       ModalEntityIdFieldName = "initiativeId",
+       AddNoteFieldName = "notes",
+       EditNoteFieldName = "notes",
+       Notes = Model.Notes,
+       IsAdmin = isAdmin,
+       CanEdit = canEdit
+   })
+    </div>
+
+    <!-- Side Panel -->
+    <div class="col-lg-4">
+        <!-- Organizational Unit Hierarchy Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-diagram-3 me-2"></i>الوحدة التنظيمية
+            </div>
+            <div class="card-body">
+                @if (externalUnitId.HasValue)
+                {
+                    <div id="unitHierarchy">
+                        <div class="text-center py-3">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                <span class="visually-hidden">جاري التحميل...</span>
+                            </div>
+                            <small class="text-muted d-block mt-2">جاري تحميل الهيكل التنظيمي...</small>
+                        </div>
+                    </div>
+                    <input type="hidden" id="externalUnitId" value="@externalUnitId" />
+                }
+                else if (!string.IsNullOrEmpty(Model.Initiative.ExternalUnitName))
+                {
+                    <span>@Model.Initiative.ExternalUnitName</span>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-2">
+                        <i class="bi bi-building" style="font-size: 1.5rem;"></i>
+                        <p class="mb-0 mt-2">لم تُحدد الوحدة التنظيمية</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Supervisor Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-person-badge me-2"></i>المدير
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.Initiative.SupervisorName) || Model.Initiative.Supervisor != null)
+                {
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="flex-shrink-0">
+                            <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="bi bi-person text-success" style="font-size: 1.5rem;"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">@supervisorRank @supervisorName</h6>
+                            @*   @if (!string.IsNullOrEmpty(supervisorRank))
+                            {
+                                <span class="badge bg-secondary mb-2">@supervisorRank</span>
+                            } *@
+                            @if (Model.Initiative.Supervisor?.EmployeePosition != null)
+                            {
+                                <div class="text-muted small mb-1">
+                                    @Model.Initiative.Supervisor.EmployeePosition
+                                </div>
+                            }
+                            @*  @if (!string.IsNullOrEmpty(supervisorEmpNumber))
+                            {
+                                <div class="text-muted small">
+                                    <i class="bi bi-hash me-1"></i>رقم الموظف: <strong>@supervisorEmpNumber</strong>
+                                </div>
+                            } *@
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-2">
+                        <i class="bi bi-person-x" style="font-size: 1.5rem;"></i>
+                        <p class="mb-0 mt-2">لم يُحدد المشرف</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @*     <!-- Dates Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-calendar me-2"></i>التواريخ
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    @if (Model.Initiative.ActualStartDate.HasValue)
+                    {
+                        <tr>
+                            <td class="text-muted">تاريخ البداية</td>
+                            <td class="text-end">@Model.Initiative.ActualStartDate.Value.ToString("yyyy-MM-dd")</td>
+                        </tr>
+                    }
+                    @if (Model.Initiative.ActualEndDate.HasValue)
+                    {
+                        <tr>
+                            <td class="text-muted">تاريخ النهاية</td>
+                            <td class="text-end">@Model.Initiative.ActualEndDate.Value.ToString("yyyy-MM-dd")</td>
+                        </tr>
+                    }
+                    @if (!Model.Initiative.ActualStartDate.HasValue && !Model.Initiative.ActualEndDate.HasValue)
+                    {
+                        <tr>
+                            <td colspan="2" class="text-center text-muted">لم تُحدد التواريخ بعد</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+
+        <!-- Budget Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-currency-dollar me-2"></i>الميزانية
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted">الميزانية المعتمدة</td>
+                        <td class="text-end">@((Model.Initiative.Budget ?? 0).ToString("N2")) ر.ع</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">التكلفة الفعلية</td>
+                        <td class="text-end">@((Model.Initiative.ActualCost ?? 0).ToString("N2")) ر.ع</td>
+                    </tr>
+                    @if (Model.Initiative.Budget.HasValue && Model.Initiative.Budget > 0)
+                    {
+                        var utilization = Model.Initiative.ActualCost.HasValue
+                        ? Math.Round(Model.Initiative.ActualCost.Value / Model.Initiative.Budget.Value * 100, 1)
+                        : 0;
+                        <tr>
+                            <td class="text-muted">نسبة الصرف</td>
+                            <td class="text-end">
+                                <span class="badge @(utilization > 100 ? "bg-danger" : utilization > 80 ? "bg-warning" : "bg-success")">
+                                    @utilization%
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+
+        <!-- Additional Info Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>معلومات إضافية
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted">السنة المالية</td>
+                        <td class="text-end">@(Model.Initiative.FiscalYear?.NameAr ?? "-")</td>
+                    </tr>
+                </table>
+            </div>
+        </div> *@
+
+        <!-- Audit Info -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>سجل التدقيق
+            </div>
+            <div class="card-body">
+                <small class="text-muted d-block">
+                    <strong>أنشئ بواسطة:</strong>@Model.Initiative.CreatedBy?.EmployeeRank @Model.Initiative.CreatedBy?.FullNameAr
+                </small>
+                <small class="text-muted d-block">
+                    <strong>تاريخ الإنشاء:</strong> @Model.Initiative.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                </small>
+                @if (Model.Initiative.LastModifiedAt.HasValue)
+                {
+                    <small class="text-muted d-block mt-2">
+                        <strong>آخر تعديل:</strong> @Model.Initiative.LastModifiedAt.Value.ToString("yyyy-MM-dd HH:mm")
+                    </small>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="Partials/_NotesSectionScripts" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var externalUnitIdEl = document.getElementById('externalUnitId');
+            if (externalUnitIdEl && externalUnitIdEl.value) {
+                loadUnitHierarchy(externalUnitIdEl.value);
+            }
+        });
+
+        function loadUnitHierarchy(unitId) {
+            fetch('/api/OrganizationApi/units/all')
+                .then(function(response) {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(function(data) {
+                    console.log('Units loaded for hierarchy:', data.length);
+                    var unit = data.find(function(u) { return u.id === unitId; });
+                    if (unit) {
+                        var hierarchy = buildHierarchy(data, unit);
+                        displayHierarchy(hierarchy);
+                    } else {
+                        document.getElementById('unitHierarchy').innerHTML = '<div class="text-center text-muted py-2">لم يتم العثور على الوحدة</div>';
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error loading hierarchy:', error);
+                    document.getElementById('unitHierarchy').innerHTML = '<div class="text-center text-danger py-2"><i class="bi bi-exclamation-triangle me-2"></i>فشل في تحميل البيانات</div>';
+                });
+        }
+
+        function buildHierarchy(allUnits, targetUnit) {
+            var hierarchy = [];
+            var current = targetUnit;
+
+            while (current) {
+                hierarchy.unshift(current);
+                var parentId = current.parentId;
+                current = allUnits.find(function(u) { return u.id === parentId; });
+            }
+
+            return hierarchy;
+        }
+
+        function displayHierarchy(hierarchy) {
+            var icons = ['bi-building', 'bi-diagram-2', 'bi-geo-alt'];
+            var colors = ['primary', 'info', 'success'];
+            var labels = ['المستوى الأول', 'المستوى الثاني', 'المستوى الثالث'];
+
+            var html = '<div class="unit-hierarchy">';
+
+            hierarchy.forEach(function(unit, index) {
+                var indent = index * 20;
+                var icon = icons[index] || 'bi-dot';
+                var color = colors[index] || 'secondary';
+                var label = labels[index] || 'المستوى ' + (index + 1);
+                var isLast = index === hierarchy.length - 1;
+
+                html += '<div class="d-flex align-items-center gap-2 mb-2" style="margin-right: ' + indent + 'px;">' +
+                    '<i class="bi ' + icon + ' text-' + color + '"></i>' +
+                    '<div class="flex-grow-1">' +
+                        '<small class="text-muted d-block">' + label + '</small>' +
+                        '<span class="' + (isLast ? 'fw-bold text-' + color : '') + '">' + unit.name + '</span>' +
+                    '</div>' +
+                '</div>';
+
+                if (index < hierarchy.length - 1) {
+                    html += '<div class="border-start border-2 border-' + color + '" style="height: 15px; margin-right: ' + (indent + 10) + 'px;"></div>';
+                }
+            });
+
+            html += '</div>';
+            document.getElementById('unitHierarchy').innerHTML = html;
+        }
+    </script>
+}

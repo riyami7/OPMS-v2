@@ -1,0 +1,55 @@
+@model OperationalPlanMS.Models.ViewModels.ProjectFormViewModel
+@{
+    ViewData["Title"] = "إضافة هدف تشغيلي جديد";
+}
+
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="page-header-title">
+            <h4 class="mb-1"><i class="bi bi-folder-plus me-2 text-success"></i>@ViewData["Title"]</h4>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/">الرئيسية</a></li>
+                    <li class="breadcrumb-item"><a href="/Projects">الأهداف التشغيلية</a></li>
+                    <li class="breadcrumb-item"><i class="bi bi-lightning-charge me-1 text-warning"></i>@ViewBag.InitiativeName</li>
+                    <li class="breadcrumb-item active">إضافة جديد</li>
+                </ol>
+            </nav>
+        </div>
+        <a asp-action="Details" asp-controller="Initiatives" asp-route-id="@Model.InitiativeId" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-right"></i>رجوع
+        </a>
+    </div>
+
+    <form asp-action="Create" method="post" id="projectForm">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="InitiativeId" />
+
+        <div class="row">
+            <div class="col-lg-8">
+                <partial name="Partials/ProjectForm/_ProjectForm_BasicInfo" model="Model" />
+                <partial name="Partials/ProjectForm/_ProjectForm_OrgStructure" model="Model" />
+                <partial name="Partials/ProjectForm/_ProjectForm_SupportingEntities" model="Model" />
+                <partial name="Partials/ProjectForm/_ProjectForm_RequirementsKPIs" model="Model" />
+            </div>
+            <div class="col-lg-4">
+                <partial name="Partials/ProjectForm/_ProjectForm_Sidebar" model="Model" />
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        window.ProjectFormConfig = {
+            requirementIndex: @(Model.Requirements?.Count ?? 0),
+            kpiIndex: @(Model.KPIItems?.Count ?? 0),
+            supportingEntities: @Html.Raw(Json.Serialize(Model.SupportingEntitiesWithReps ?? new List<OperationalPlanMS.Models.ViewModels.SupportingEntityWithRepViewModel>())),
+            existingYearTargets: @Html.Raw(Json.Serialize(Model.YearTargets ?? new List<OperationalPlanMS.Models.ViewModels.YearTargetItemViewModel>())),
+            savedExternalUnitId: '@(Model.ExternalUnitId?.ToString() ?? "")',
+            savedSubObjectiveIds: []
+        };
+    </script>
+    <script src="~/js/project-form.js"></script>
+}
